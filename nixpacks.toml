@@ -1,5 +1,10 @@
 [phases.install]
-commands = ["pip install -r requirements.txt"]
+commands = [
+  "python -m venv /opt/venv",
+  "/opt/venv/bin/pip install --no-cache-dir -r requirements.txt"
+]
 
 [phases.start]
-commands = ["python support_bot.py"]
+commands = [
+  "/opt/venv/bin/python support_bot.py"
+]
