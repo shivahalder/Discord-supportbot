@@ -1,0 +1,3 @@
+"start": {
+  "cmds": ["python3 support_bot.py"]
+}
