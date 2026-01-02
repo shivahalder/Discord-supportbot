@@ -1,6 +1,14 @@
+# nixpacks.toml for Discord bot
+
+[phases.setup]
+nixPkgs = ["python3", "gcc"]
+nixLibs = ["zlib", "stdenv.cc.cc.lib"]
+aptPkgs = ["curl", "wget"]
+
 [phases.install]
 commands = [
   "python -m venv /opt/venv",
+  "/opt/venv/bin/pip install --upgrade pip",
   "/opt/venv/bin/pip install --no-cache-dir -r requirements.txt"
 ]
 
