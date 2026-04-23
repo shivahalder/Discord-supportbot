@@ -1,96 +1,108 @@
-# Discord Verification Bot
+# Discord ModMail Bot
 
-A Discord bot combined with an Express HTTP server that handles member verification, IP logging, and ban management backed by a MySQL database.
+A Discord bot that creates a private communication system between server members and moderators. Users send a direct message to the bot, and it automatically generates a dedicated ticket channel where staff can respond — keeping all conversations organized and confidential.
 
-## How it works
-
-When a new member joins the server, the bot sends them a DM with a unique verification link. Clicking the link hits the Express server, records their Discord ID, username, and IP address in the database, and assigns them the verified role. Admins can then ban or unban users by Discord ID or by the IP address captured during verification.
+---
 
 ## Features
 
-- Sends a verification link to every new member via DM
-- Assigns a role on successful verification
-- Blocks banned IDs and IPs from verifying
-- Admin commands to ban/unban by Discord ID or IP
-- Automatically creates `IPBAN` and `IDBAN` roles if they do not exist
-- Strips all roles from a banned member and assigns the appropriate ban role
-- Restores the verified role when a ban is lifted
+- **Automatic Ticket Creation** — When a user sends a DM to the bot, a private modmail channel is instantly created in the server.
+- **Two-Way Messaging** — Moderators can reply directly inside the ticket channel, and the message is forwarded to the user's DMs.
+- **Spam Protection** — Users who send more than 5 messages within 10 seconds are automatically blocked from the modmail system.
+- **Manual Ticket Opening** — Staff members can proactively open a modmail thread for any user by their ID.
+- **Ticket Closure Notifications** — When a ticket is deleted or closed, the user receives an automatic notification via DM.
+- **Docker Support** — The bot can be containerized and deployed using Docker for consistent, reliable hosting.
+
+---
+
+## Commands
+
+| Command | Permission Required | Description |
+|---|---|---|
+| `!setup` | Administrator | Creates the MODMAIL category and SUPPORTER role in your server. |
+| `!open <userID>` | SUPPORTER role | Manually opens a modmail thread to contact a specific user. |
+| `!close [reason]` | SUPPORTER role | Closes the current modmail thread and notifies the user. |
+| `!help` | Anyone | Displays a list of all available commands. |
+
+> The default prefix is `!`. You can change it by setting the `PREFIX` variable in your `.env` file.
+
+---
 
 ## Prerequisites
 
-- Node.js 20 or later (or Docker)
-- A MySQL-compatible database
-- A Discord bot token with the `Server Members Intent` and `Message Content Intent` enabled in the Discord Developer Portal
+Before running this bot, make sure you have the following installed:
 
-## Environment variables
+- [Node.js](https://nodejs.org/) v16 or higher
+- npm (comes bundled with Node.js)
+- A Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications)
 
-Copy `.env.example` to `.env` and fill in the values. Never commit your `.env` file.
+---
 
-| Variable           | Description                          |
-|--------------------|--------------------------------------|
-| `DISCORD_BOT_TOKEN`| Your Discord bot token               |
-| `DB_HOST`          | MySQL host                           |
-| `DB_PORT`          | MySQL port (default: 3306)           |
-| `DB_USER`          | MySQL username                       |
-| `DB_PASSWORD`      | MySQL password                       |
-| `DB_NAME`          | MySQL database name                  |
+## Installation
 
-## Database setup
-
-Run the following SQL to create the required tables:
-
-```sql
-CREATE TABLE verified (
-    discordId VARCHAR(32) PRIMARY KEY,
-    username  VARCHAR(100),
-    ip        VARCHAR(64)
-);
-
-CREATE TABLE banned_ids (
-    discordId VARCHAR(32) PRIMARY KEY,
-    username  VARCHAR(100)
-);
-
-CREATE TABLE banned_ips (
-    ip       VARCHAR(64) PRIMARY KEY,
-    username VARCHAR(100)
-);
+**1. Clone the repository**
+```bash
+git clone https://github.com/YOUR_USERNAME/discord-modmail-bot.git
+cd discord-modmail-bot
 ```
 
-## Running locally
-
+**2. Install dependencies**
 ```bash
 npm install
-node bot-and-server.js
 ```
 
-## Running with Docker
+**3. Configure environment variables**
+
+Create a `.env` file in the root directory and add the following:
+```env
+DISCORD_BOT_TOKEN=your_bot_token_here
+PREFIX=!
+SERVER_ID=your_server_id_here
+```
+
+**4. Start the bot**
+```bash
+node index.js
+```
+
+---
+
+## Docker Deployment
+
+If you prefer to run the bot inside a Docker container:
 
 ```bash
-docker compose up --build
+docker build -t modmail-bot .
+docker run -d --env-file .env modmail-bot
 ```
 
-The Express server listens on port `3000`. Make sure that port is reachable from wherever your verification link points.
+---
 
-## Bot commands
+## How It Works
 
-All commands require the `Ban Members` permission.
+1. A user sends a direct message to the bot.
+2. The bot locates the MODMAIL category in your server (created by `!setup`).
+3. A new text channel is created under that category, named after the user.
+4. Supporters can see the channel and respond — their replies are forwarded to the user's DMs.
+5. When the issue is resolved, a supporter runs `!close` to delete the channel and notify the user.
 
-| Command           | Description                                      |
-|-------------------|--------------------------------------------------|
-| `!banid @user`    | Bans a user by Discord ID and assigns IDBAN role |
-| `!unbanid @user`  | Removes the ID ban and restores the verified role|
-| `!banip @user`    | Bans the IP associated with a verified user      |
-| `!unbanip @user`  | Removes the IP ban and restores the verified role|
+---
 
-You can mention a user or provide their raw Discord ID for any command.
+## Security Notice
 
-## Project structure
+Never share or commit your `.env` file or bot token to a public repository. The `.gitignore` file in this project already excludes `.env` to help protect your credentials.
 
-```
-bot-and-server.js   main entry point (bot + HTTP server)
-Dockerfile
-docker-compose.yml
-package.json
-.env                not committed — contains secrets
-```
+---
+
+## Tech Stack
+
+- **Runtime:** Node.js
+- **Library:** [discord.js](https://discord.js.org/) v14
+- **Configuration:** dotenv
+- **Deployment:** Docker
+
+---
+
+## License
+
+This project is licensed under the ISC License.
